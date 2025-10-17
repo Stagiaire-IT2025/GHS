@@ -1,22 +1,31 @@
 import { NavLink } from 'react-router-dom';
-import { Home, FileText, PlusCircle, CheckCircle, Users, Settings, LogOut } from 'lucide-react';
+import { Home, FileText, PlusCircle, CheckCircle, Users, Settings, LogOut, Building2, Shield, RefreshCw, BarChart3 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 const navigation = [
-  { name: 'Tableau de bord', href: '/dashboard', icon: Home },
-  { name: 'Mes Demandes', href: '/requests', icon: FileText },
-  { name: 'Nouvelle Demande', href: '/requests/new', icon: PlusCircle },
-  { name: 'Validations N1', href: '/validations/n1', icon: CheckCircle },
-  { name: 'Validations N2', href: '/validations/n2', icon: CheckCircle },
-  { name: 'Employés', href: '/employees', icon: Users },
-  { name: 'Services', href: '/services', icon: Settings },
-  { name: 'Comptes', href: '/accounts', icon: Users },
-  { name: 'Délégations', href: '/delegations', icon: Users },
-  { name: 'Rapports', href: '/reports', icon: FileText },
+  { name: 'Tableau de bord', href: '/dashboard', icon: Home, roles: ['all'] },
+  { name: 'Mes Demandes', href: '/my-requests', icon: FileText, roles: ['all'] },
+  { name: 'Nouvelle Demande', href: '/requests/new', icon: PlusCircle, roles: ['all'] },
+  { name: 'Validations N1', href: '/validations/n1', icon: CheckCircle, roles: ['Supervisor', 'Administrator'] },
+  { name: 'Validations N2', href: '/validations/n2', icon: CheckCircle, roles: ['Coordinator', 'Administrator'] },
+  { name: 'Employés', href: '/employees', icon: Users, roles: ['Administrator'] },
+  { name: 'Services', href: '/services', icon: Building2, roles: ['Administrator'] },
+  { name: 'Comptes', href: '/accounts', icon: Shield, roles: ['Administrator'] },
+  { name: 'Délégations', href: '/delegations', icon: RefreshCw, roles: ['Supervisor', 'Administrator', 'Coordinator'] },
+  { name: 'Rapports', href: '/reports', icon: BarChart3, roles: ['all'] },
+  { name: 'Paramètres', href: '/settings', icon: Settings, roles: ['all'] },
 ];
 
 const Sidebar = ({ isOpen }: { isOpen: boolean }) => {
+  const { user, logout } = useAuth();
+
+  const hasAccess = (roles: string[]) => {
+    if (roles.includes('all')) return true;
+    return user && roles.includes(user.role);
+  };
+
   return (
-    <div 
+    <div
       className={`fixed inset-y-0 left-0 z-40 bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
         isOpen ? 'translate-x-0 w-64' : '-translate-x-48 w-16'
       }`}
@@ -27,10 +36,10 @@ const Sidebar = ({ isOpen }: { isOpen: boolean }) => {
           <h1 className={`text-xl font-bold text-blue-600 ${!isOpen && 'hidden'}`}>GHS</h1>
           <h1 className={`text-xl font-bold text-blue-600 ${isOpen && 'hidden'}`}>G</h1>
         </div>
-        
+
         {/* Navigation */}
         <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
-          {navigation.map((item) => {
+          {navigation.filter(item => hasAccess(item.roles)).map((item) => {
             const Icon = item.icon;
             return (
               <NavLink
@@ -56,13 +65,18 @@ const Sidebar = ({ isOpen }: { isOpen: boolean }) => {
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
-                <span className="text-gray-600 text-sm">U</span>
+                <span className="text-gray-600 text-sm font-semibold">
+                  {user?.name?.charAt(0).toUpperCase() || 'U'}
+                </span>
               </div>
             </div>
             {isOpen && (
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-700">Utilisateur</p>
-                <button className="text-xs text-gray-500 hover:text-gray-700 flex items-center">
+                <p className="text-sm font-medium text-gray-700">{user?.name || 'Utilisateur'}</p>
+                <button
+                  onClick={logout}
+                  className="text-xs text-gray-500 hover:text-gray-700 flex items-center"
+                >
                   <LogOut className="h-4 w-4 mr-1" />
                   Déconnexion
                 </button>

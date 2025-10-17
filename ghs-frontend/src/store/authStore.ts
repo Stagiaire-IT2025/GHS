@@ -1,7 +1,7 @@
 // src/store/authStore.ts
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { api } from '@/lib/api';
+import api from '@/services/api';
 
 export interface User {
   id: string;
